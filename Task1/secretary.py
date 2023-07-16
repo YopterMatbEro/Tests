@@ -74,6 +74,8 @@ def delete_doc():
                 documents.remove(current_document)
                 remove_doc_from_shelf(doc_number)
                 return doc_number, True
+    else:
+        return None, False
 
 
 def get_doc_shelf():
@@ -91,6 +93,7 @@ def move_doc_to_shelf():
     remove_doc_from_shelf(user_doc_number)
     append_doc_to_shelf(user_doc_number, user_shelf_number)
     print('Документ номер "{}" был перемещен на полку номер "{}"'.format(user_doc_number, user_shelf_number))
+    return 'Документ номер "{}" был перемещен на полку номер "{}"'.format(user_doc_number, user_shelf_number)
 
 
 def show_document_info(document):
@@ -98,18 +101,17 @@ def show_document_info(document):
     doc_number = document['number']
     doc_owner_name = document['name']
     print('{} "{}" "{}"'.format(doc_type, doc_number, doc_owner_name))
+    return '{} "{}" "{}"'.format(doc_type, doc_number, doc_owner_name)
 
 
 def show_all_docs_info():
-    print('Список всех документов:\n')
-    for current_document in documents:
-        show_document_info(current_document)
+    return [show_document_info(cur_doc) for cur_doc in documents]
 
 
 def add_new_doc():
     new_doc_number = input('Введите номер документа - ')
     new_doc_type = input('Введите тип документа - ')
-    new_doc_owner_name = input('Введите имя владельца документа- ')
+    new_doc_owner_name = input('Введите имя владельца документа - ')
     new_doc_shelf_number = input('Введите номер полки для хранения - ')
     new_doc = {
         "type": new_doc_type,
@@ -121,54 +123,69 @@ def add_new_doc():
     return new_doc_shelf_number
 
 
-def secretary_program_start():
+def secretary_program_start(command=None):
     """
-    ap - (all people) - команда, которая выводит список всех владельцев документов
+    ap - (all people) - команда, которая выводит список всех владельцев документов;
     p – (people) – команда, которая спросит номер документа и выведет имя человека, которому он принадлежит;
     l – (list) – команда, которая выведет список всех документов в формате passport "2207 876234" "Василий Гупкин";
     s – (shelf) – команда, которая спросит номер документа и выведет номер полки, на которой он находится;
     a – (add) – команда, которая добавит новый документ в каталог и в перечень полок, спросив его номер, тип,
-    имя владельца и номер полки, на котором он будет храниться.
+    имя владельца и номер полки, на котором он будет храниться;
     d – (delete) – команда, которая спросит номер документа и удалит его из каталога и из перечня полок;
     m – (move) – команда, которая спросит номер документа и целевую полку и переместит его с текущей полки на целевую;
     as – (add shelf) – команда, которая спросит номер новой полки и добавит ее в перечень;
-    q - (quit) - команда, которая завершает выполнение программы
+    q - (quit) - команда, которая завершает выполнение программы.
     """
     print(
-        'Вас приветствует программа помощник!\n',
+        '\nВас приветствует программа помощник!\n',
         '(Введите help, для просмотра списка поддерживаемых команд)\n'
     )
     while True:
-        user_command = input('Введите команду - ')
-        if user_command == 'p':
-            owner_name = get_doc_owner_name()
-            print('Владелец документа - {}'.format(owner_name))
-        elif user_command == 'ap':
-            uniq_users = get_all_doc_owners_names()
-            print('Список владельцев документов - {}'.format(uniq_users))
-        elif user_command == 'l':
-            show_all_docs_info()
-        elif user_command == 's':
-            directory_number = get_doc_shelf()
-            print('Документ находится на полке номер {}'.format(directory_number))
-        elif user_command == 'a':
-            print('Добавление нового документа:')
-            new_doc_shelf_number = add_new_doc()
-            print('\nНа полку "{}" добавлен новый документ:'.format(new_doc_shelf_number))
-        elif user_command == 'd':
-            doc_number, deleted = delete_doc()
-            if deleted:
-                print('Документ с номером "{}" был успешно удален'.format(doc_number))
-        elif user_command == 'm':
-            move_doc_to_shelf()
-        elif user_command == 'as':
-            shelf_number, added = add_new_shelf()
-            if added:
-                print('Добавлена полка "{}"'.format(shelf_number))
-        elif user_command == 'help':
-            print(secretary_program_start.__doc__)
-        elif user_command == 'q':
-            break
+        if command:
+            user_command = command
+            command = None
+        else:
+            user_command = input('Введите команду - ')
+        try:
+            if user_command == 'p':
+                owner_name = get_doc_owner_name()
+                print('Владелец документа - {}'.format(owner_name))
+                return owner_name
+            elif user_command == 'ap':
+                uniq_users = get_all_doc_owners_names()
+                print('Список владельцев документов - {}'.format(uniq_users))
+                return uniq_users
+            elif user_command == 'l':
+                return show_all_docs_info()
+            elif user_command == 's':
+                directory_number = get_doc_shelf()
+                print('Документ находится на полке номер {}'.format(directory_number))
+                return directory_number
+            elif user_command == 'a':
+                print('Добавление нового документа:')
+                new_doc_shelf_number = add_new_doc()
+                print('\nНа полку "{}" добавлен новый документ'.format(new_doc_shelf_number))
+            elif user_command == 'd':
+                doc_number, deleted = delete_doc()
+                if deleted:
+                    print('yep')
+                    return 'Документ с номером "{}" был успешно удален'.format(doc_number)
+                else:
+                    print('nope')
+                    return 'Документ с указанным номером не существует'
+            elif user_command == 'm':
+                return move_doc_to_shelf()
+            elif user_command == 'as':
+                shelf_number, added = add_new_shelf()
+                if added:
+                    print('Добавлена полка "{}"'.format(shelf_number))
+                    return 'Добавлена полка "{}"'.format(shelf_number)
+            elif user_command == 'help':
+                print(secretary_program_start.__doc__)
+            elif user_command == 'q':
+                break
+        finally:
+            pass
 
 
 if __name__ == '__main__':
